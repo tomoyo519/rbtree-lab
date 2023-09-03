@@ -3,9 +3,15 @@
 #include <stdlib.h>
 
 rbtree *new_rbtree(void) {
+  //트리의 root, nil 정보를 담을 포인터 변수 p
   rbtree *p = (rbtree *)calloc(1, sizeof(rbtree));
-  // TODO: initialize struct if needed
-  return p;
+  //닐노드도 노드이므로, 메모리 할당 해주기
+  node_t *nilNode = (node_t *)calloc(1, sizeof(node_t));
+  
+  p->nil = nilNode; //포인터 변수와 닐노드연결
+  p->root = p->nil; // root, 닐노드를 이어준다.(아직 삽입된 노드가 없을떄의 초기 ver.)
+  p->nil->color = RBTREE_BLACK;// 닐노드의 색상은 항상 블랙이다.
+  return p; // 새로운 rbtree 정보를 가진 포인터 변수 p를 반환한다.
 }
 
 void delete_rbtree(rbtree *t) {
