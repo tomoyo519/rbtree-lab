@@ -5,18 +5,25 @@
 rbtree *new_rbtree(void) {
   //트리의 root, nil 정보를 담을 포인터 변수 p
   rbtree *p = (rbtree *)calloc(1, sizeof(rbtree));
+
   //닐노드도 노드이므로, 메모리 할당 해주기
   node_t *nilNode = (node_t *)calloc(1, sizeof(node_t));
-  
+  if(p !=NULL && nilNode !=NULL){
+
   p->nil = nilNode; //포인터 변수와 닐노드연결
   p->root = p->nil; // root, 닐노드를 이어준다.(아직 삽입된 노드가 없을떄의 초기 ver.)
   p->nil->color = RBTREE_BLACK;// 닐노드의 색상은 항상 블랙이다.
   return p; // 새로운 rbtree 정보를 가진 포인터 변수 p를 반환한다.
+  }
+  else{
+
+  return NULL;
+  }
 }
 
 
 void traverse_and_delete_node(rbtree *t, node_t *node){
-  if(node->left != t->nil){
+  if(node->left != t->nil ){
     traverse_and_delete_node(t, node->left);
   }if (node->right != t->nil){
     traverse_and_delete_node(t, node->right);
@@ -28,7 +35,6 @@ void traverse_and_delete_node(rbtree *t, node_t *node){
 void delete_rbtree(rbtree *t) {
   // TODO: reclaim the tree nodes's memory
   // 트리를 순회하면서 각 노드의 메모리를 반환하는 함수
-  free(t);
   node_t *node = t->root;
   if (node != t->nil){
     traverse_and_delete_node(t, node);
@@ -40,21 +46,147 @@ void delete_rbtree(rbtree *t) {
 }
 
 
-void right_rotate(rbtree *t, node_t *z){
-  printf("right_rotate");
-}
 
-void left_rotate(rbtree *t, node_t *z){
-  printf("left_rotate");
-}
+void right_rotate(rbtree *t, node_t *node)
+// {
+  //매개변수로 들어온 기준 노드를 기준으로 오른쪽/으로 회전시킨다
+  //기준노드 = 회전 후 부모 노드의 자리를 대체하게 되는노드 ..회전 후에 루트가 되는것.
+  // 오른쪽으로 회전하기
+  // 1. 부모변경= node의 부모를 grandparent로 변경한다.
+  // 자식변경 = node를 grand_parent의 자식으로 변경한다.
+  // 2. 부모변경 = parent의 부모를 node로 변경한다.
+  // 자식 변경 = parent를 node의 자식으로 변경한다.
+  // 3. 부모변경 node_right_child의 부모를 parent로 변경한다
+  //자식변경 Node_right_child를 parent의 자식으로 변경한다.
+  // node left child는 그대로 node의 왼쪽 자식으로 남는다.
+// node_t *x = y->left;
+//   y->left = x->right;
+
+//   // β(x의 오른쪽 자식)가 존재한다면
+//   if (x->right != t->nil)
+//   {
+//     // β의 부모를 x에서 y로 변경해준다.
+//     x->right->parent = y;
+//   }
+
+//   // x의 부모는 y에서 y의 부모로 변경한다.
+//   x->parent = y->parent;
+//   // 이 때 y->parent == t->nil 이면,
+//   if (y->parent == t->nil)
+//   {
+//     // 새로운 루트는 x가 된다.
+//     t->root = x;
+//   }
+//   // y의 부모가 nil 이 아니고, y가 그 부모의 왼쪽 자식이었다면
+//   else if (y == y->parent->left)
+//   {
+//     // y의 부모의 새로운 왼쪽 자식을 x로 연결한다
+//     y->parent->left = x;
+//   }
+//   // y가 그 부모의 오른쪽 자식이었다면
+//   else
+//   {
+//     // y의 부모의 새로운 왼쪽 자식을 x로 연결한다.
+//     y->parent->right = x;
+//   }
+
+//   x->right = y;  // x의 왼쪽 자식을 β에서 y로 변경해 연결한다.
+//   y->parent = x; // y의 부모를 x로 변경한다.
+{
+      node_t *parent = node->parent;
+      node_t *grand_parent = parent->parent;
+      node_t *node_right = node->right;
+    
+      // 부모가 루트인 경우: 현재 노드를 루트로 지정 (노드를 삭제한 경우만 해당)
+      if (parent == t->root)
+        t->root = node;
+      else
+      { // 1-1) 노드의 부모를 grand_parent로 변경
+        if (grand_parent->left == parent)
+          grand_parent->left = node;
+        else
+          grand_parent->right = node;
+      }
+      node->parent = grand_parent; // 1-2) 노드를 grand_parent의 자식으로 변경 (양방향 연결)
+      parent->parent = node;       // 2-1) parent의 부모를 노드로 변경
+      node->right = parent;        // 2-2) parent를 노드의 자식으로 변경 (양방향 연결)
+      node_right->parent = parent; // 3-1) 노드의 자식의 부모를 parent로 변경
+      parent->left = node_right;   // 3-2) 노드의 자식을 부모의 자식으로 변경 (양방향 연결)
+    
+  }
+
+void left_rotate(rbtree *t, node_t *node)
+// {
+//    // 우선 x의 오른쪽 자식, y를 설정한다.
+//   node_t *y = x->right;
+//   x->right = y->left;
+
+//   // β(y의 왼쪽 자식)가 존재한다면
+//   if (y->left != t->nil)
+//   {
+//     // β의 부모를 y에서 x로 변경해준다.
+//     y->left->parent = x;
+//   }
+
+//   // left rotate 시 부모 자식 관계에 변화를 반영한다.
+//   // y의 부모를 x에서 x의 부모로 변경해준다.
+//   y->parent = x->parent;
+//   // 이 때 x->parent == t->nil 이면,
+//   if (x->parent == t->nil)
+//   {
+//     // 새로운 루트는 y가 된다.
+//     t->root = y;
+//   }
+//   // x의 부모가 nil이 아니고, x가 그 부모의 왼쪽 자식이었다면
+//   else if (x == x->parent->left)
+//   {
+//     // x의 부모의 새로운 왼쪽 자식을 y로 연결한다.
+//     x->parent->left = y;
+//   }
+//   // x가 그 부모의 오른쪽 자식이었다면
+//   else
+//   {
+//     // x의 부모의 새로운 오른쪽 자식을 y로 연결한다.
+//     x->parent->right = y;
+//   }
+
+//   y->left = x;   // y의 왼쪽 자식을 β에서 x로 변경해 연결한다.
+//   x->parent = y; // x의 부모를 y로 변경한다.
+// }
+
+ {
+      node_t *parent = node->parent;
+      node_t *grand_parent = parent->parent;
+      node_t *node_left = node->left;
+    
+      // 부모가 루트인 경우: 현재 노드를 루트로 지정 (노드를 삭제한 경우만 해당)
+      if (parent == t->root)
+        t->root = node;
+      else
+      { // 1-1) 노드의 부모를 grand_parent로 변경
+        if (grand_parent->left == parent)
+          grand_parent->left = node;
+        else
+          grand_parent->right = node;
+      }
+      node->parent = grand_parent; // 1-2) 노드를 grand_parent의 자식으로 변경 (양방향 연결)
+      parent->parent = node;       // 2-1) parent의 부모를 노드로 변경
+      node->left = parent;         // 2-2) parent를 노드의 자식으로 변경 (양방향 연결)
+      parent->right = node_left;   // 3-1) 노드의 자식의 부모를 parent로 변경
+      node_left->parent = parent;  // 3-2) 노드의 자식을 부모의 자식으로 변경 (양방향 연결)
+    }
 
 void exchange_color(node_t *x, node_t *y){
-  printf("exchange_color");
+  int tmp = x->color;
+  x->color = y->color;
+  y->color = (tmp ==RBTREE_BLACK ) ?  RBTREE_BLACK : RBTREE_RED;
 }
 
 
+//키값을 기준으로 다음 노드를 반환하는 함수
 node_t *get_next_node(const rbtree *t, node_t *p)
 {
+  // ??? 오ㅐ 탐색을 right 부터 
   node_t *current = p->right;
   if (current == t->nil) // 오른쪽 자식이 없으면
   {
@@ -217,17 +349,16 @@ if(is_parent_is_left){
   //부모노드와 형제노드의 색상을 바꾼다.
   exchange_color(parent, parent->left);
 }
-
-
-
-
 }
 
 //인자로 받는 rbtree *t 는 현재 만들어져있는 rbtree를 가리키는 포인터이다. ???
 node_t *rbtree_insert(rbtree *t, const key_t key) {
   // TODO: implement insert
   node_t *z = (node_t *)calloc(1, sizeof(node_t));
-  z->key = key;
+
+  if(z !=NULL){
+    z->key = key;
+  }
   //자리를 찾아 내려갈 ptr 변수 x,y
   node_t *x = t->root;
   node_t *y = t->nil;
@@ -353,5 +484,23 @@ int rbtree_erase(rbtree *t, node_t *delete ) {
 
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
   // TODO: implement to_array
+  //rbtree 내용을 key 순서대로 주어진 array를 반환한다.
+  // tree가 n보다 큰 경우에는 순서대로 n개까지만 변환한다.
+  // rbtree_min() 함수를 호출하여, 가장 작은 값을 가진 노드를 시작으로 current 포인터 설정
+  // 루프를 돌면서, currnet노드를 get next node함수를 활용해 중위 순회 하면서
+  // 다음 노드를 가져와서 key값을 arr에 저장한다.
+  // 루프를 n번 반복하거나 current 가 더이상 존재하지 않을떄까지 반복한다.
+  node_t *current = rbtree_min(t);
+  arr[0]= current->key;
+    if(current != t->nil){
+      for(int i=1; i<n; i++){
+        current = get_next_node(t, current);
+        if(current == t->nil){
+          break;
+        }
+        arr[i] = current->key;
+      }
+    }
+
   return 0;
 }
